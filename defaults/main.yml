@@ -1,0 +1,37 @@
+nextcloud_version: 26.0.3
+
+nextcloud_db_name: "nextcloud"
+nextcloud_db_user: "nextcloud"
+nextcloud_db_password: "NotSecure"
+
+nextcloud_admin_user: admin
+nextcloud_admin_password: "NotSecure"
+
+nextcloud_db_root_password: "NotSecure"
+
+nextcloud_os_user: "nextclouduser"
+
+apache_listen_ip: "*"
+apache_listen_port: 80
+apache_listen_port_ssl: 443
+
+
+# nextcloud apps
+install_talk: false
+install_media: false
+
+# php-fpm
+php_fpm:
+  max_children: 120
+  start_servers: 12
+  min_spare_servers: 6
+  max_spare_servers: 18
+
+# php
+opcache:
+  interned_strings_buffer: 16
+
+# mariadb
+innodb_buffer_pool_size: 512M
+remove_unused_authtokens_after_days: 21
+

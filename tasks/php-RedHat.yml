@@ -1,0 +1,17 @@
+---
+# tasks file for nextcloud
+- name: PHP - DNF reset php 
+  command: "dnf module reset -y php"
+  when: ansible_facts['distribution_major_version'] == "9"
+
+- name: "PHP - Enable PHP:8.2 module"
+  command: "dnf module enable -y php:remi-8.2"
+  register: dnf_module_php_enabled
+  when: ansible_facts['distribution_major_version'] == "9"
+
+- name: PHP - Install PHP 8.2 requirements
+  ansible.builtin.dnf:
+    name: "{{ nextcloud_php_requirements }}"
+    state: present
+  when: dnf_module_php_enabled
+

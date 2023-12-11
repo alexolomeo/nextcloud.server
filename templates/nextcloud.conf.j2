@@ -1,0 +1,19 @@
+{{ ansible_managed | comment }}
+Alias /nextcloud "{{ nextcloud_apache_destination }}/nextcloud"
+
+<VirtualHost *:80>
+
+  DocumentRoot "{{ nextcloud_apache_destination }}/nextcloud"
+  ServerName  consutrans.failover.com.bo
+
+<Directory {{ nextcloud_apache_destination }}/nextcloud/>
+  Require all granted
+  AllowOverride All
+  Options FollowSymlinks MultiViews
+
+ <IfModule mod_dav.c>
+   Dav off
+ </IfModule>
+
+</Directory>
+</VirtualHost>

@@ -1,0 +1,18 @@
+- name: ufw rules
+  ansible.builtin.command: "{{ item }}"
+  with_items:
+    - ufw limit ssh comment "incomming ssh with ratelimit"
+    - ufw allow out 22 comment "outgoing ssh"
+    - ufw allow 80 comment "incomming http for apache2"
+    - ufw allow 443 comment "incomming https for apache2"
+    - ufw allow out 80 comment "outgoing http"
+    - ufw allow out 443 comment "outgoing https"
+    - ufw allow out 53/udp comment "outgoing for dns"
+    - ufw allow out 123/udp comment "outgoing for ntp"
+    - ufw allow out 993 comment "outgoing imap ssl"
+    - ufw allow out 465 comment "outgoing smtp ssl"
+
+- name: ufw enable
+  community.general.ufw:
+    state: enabled
+

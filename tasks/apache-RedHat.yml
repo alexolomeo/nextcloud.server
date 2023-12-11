@@ -1,0 +1,44 @@
+---
+#INSTALL
+
+- name: APACHE - Apache Packages for Centos or RHEL.
+  ansible.builtin.package:
+    name: "{{ nextcloud_apache_requirements }}"
+    state: present
+
+- name: APACHE - Ensure Apache has selected state and enabled on boot.
+  service:
+    name: "{{ nextcloud_apache_service }}"
+    state: started
+    enabled: yes
+
+#CONFIGURATION    
+- name: APACHE - Configure Apache.
+  lineinfile:
+    dest: "{{ nextcloud_apache_home_directory }}/conf/{{ nextcloud_apache_daemon }}.conf"
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
+    state: present
+    mode: 0644
+  with_items: "{{ apache_ports_configuration_items }}"
+#  notify: restart apache
+
+- name: APACHE - ensure "{{ nextcloud_apache_home_directory }}/conf/{{ nextcloud_apache_daemon }}.conf" is present
+  template:
+    src: nextcloud.conf.j2
+    dest: "{{ nextcloud_apache_home_directory }}/conf/nextcloud.conf"
+    mode: 0644
+#  notify:
+#- reload httpd
+#tags:
+#- apache_config
+
+- name: APACHE - Enable Apache mods.
+  copy:
+    dest: "{{ nextcloud_apache_home_directory }}/conf.modules.d/99-ansible-{{ item }}.conf"
+    content: |
+      LoadModule {{ item }}_module modules/mod_{{ item }}.so
+    mode: 0644
+  with_items: "{{ nextcloud_apache_mods }}"
+#  notify: restart apache
+

@@ -1,0 +1,69 @@
+- name: "O.S. - {{ ansible_distribution }} - Set hostname"
+  ansible.builtin.hostname:
+    name: "{{ nextcloud_fqdn.split('.')[0] }}"
+
+- name: "O.S. {{ ansible_distribution }} {{ ansible_distribution_major_version }} - Complete /etc/hosts"
+  ansible.builtin.lineinfile:
+    name: /etc/hosts
+    line: "127.0.1.1 {{ nextcloud_fqdn }} {{ nextcloud_fqdn.split('.')[0] }}"
+
+- name: "O.S. {{ ansible_distribution }} {{ ansible_distribution_major_version }} - Upgrade all packages for all new {{ ansible_distribution }} {{ ansible_distribution_major_version }}  ..."
+  ansible.builtin.apt:
+    update_cache: true
+    state: latest
+    upgrade: true
+
+- name: "O.S. {{ ansible_distribution }} {{ ansible_distribution_major_version }} - Install package dependency of S.O."
+  ansible.builtin.apt:
+    update_cache: true
+    state: latest
+    name:
+      - ufw
+      - vnstat
+      - python3-pymysql
+      - unzip
+      - zip
+      - wget
+      - fail2ban
+      - net-tools
+      - nfs-common
+
+- name: "O.S. {{ ansible_distribution }} {{ ansible_distribution_major_version }} - Download mariadb_repo_setup"
+  ansible.builtin.get_url:
+    url: "https://downloads.mariadb.com/MariaDB/mariadb_repo_setup"
+    dest: "/tmp/mariadb_repo_setup"
+
+- name: "O.S. {{ ansible_distribution }} {{ ansible_distribution_major_version }} - Config mariadb 10.6"
+  ansible.builtin.command: 
+    cmd: sudo chmod +x mariadb_repo_setup
+    chdir: /tmp 
+
+- name: "O.S. {{ ansible_distribution }} {{ ansible_distribution_major_version }} - Config mariadb 10.6"
+  ansible.builtin.command: 
+    cmd: sudo bash mariadb_repo_setup --mariadb-server-version=10.6
+    chdir: /tmp 
+
+- name: "O.S. {{ ansible_distribution }} {{ ansible_distribution_major_version }} - Install package dependency of  mariadb"
+  ansible.builtin.apt:
+    update_cache: true
+    state: latest
+    name:
+      - mariadb-server
+      - mariadb-client
+
+- name: "O.S. {{ ansible_distribution }} {{ ansible_distribution_major_version }} - Install package dependency repository"
+  ansible.builtin.apt:
+    update_cache: true
+    state: latest
+    name:
+      - ca-certificates
+      - apt-transport-https
+      - software-properties-common
+
+- name: "O.S. {{ ansible_distribution }} {{ ansible_distribution_major_version }} - Install repository php8.1 php8.2"
+  ansible.builtin.command: 
+    cmd: sudo add-apt-repository ppa:ondrej/php -y
+
+- name: "O.S. {{ ansible_distribution }} {{ ansible_distribution_major_version }} - Apt update....... repository php8.1 php8.2"
+  ansible.builtin.command: 
+    cmd: sudo apt update -y

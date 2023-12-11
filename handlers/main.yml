@@ -1,0 +1,14 @@
+- name: restart apache2
+  ansible.builtin.systemd:
+    name: apache2
+    state: restarted
+
+- name: restart php-fpm
+  ansible.builtin.systemd:
+    name: php8.2-fpm
+    state: restarted
+
+- name: restart mariadb
+  ansible.builtin.systemd:
+    name: mariadb
+    state: restarted

@@ -1,0 +1,138 @@
+- name: NEXTCLOUD - copy nextcloud gpg signature
+  ansible.builtin.copy:
+    src: nextcloud.asc
+    dest: /tmp/nextcloud.asc
+    mode: '0600'
+
+- name: NEXTCLOUD - import gpgkey for verify nextcloud installation
+  command: gpg --import /tmp/nextcloud.asc
+
+- name: NEXTCLOUD - get sha256sum
+  ansible.builtin.uri:
+    url: https://download.nextcloud.com/server/releases/nextcloud-{{ nextcloud_version }}.zip.sha256
+    return_content: true
+  register: ncsum
+
+- name: NEXTCLOUD - download nc itself
+  ansible.builtin.get_url:
+    url: "https://download.nextcloud.com/server/releases/nextcloud-{{ nextcloud_version }}.zip"
+    dest: "/tmp/nextcloud-{{ nextcloud_version }}.zip"
+    checksum: "sha256:{{ ncsum.content.split(' ')[0] }}"
+
+- name: NEXTCLOUD - download nc signature
+  ansible.builtin.get_url:
+    url: "https://download.nextcloud.com/server/releases/nextcloud-{{ nextcloud_version }}.zip.asc"
+    dest: "/tmp/nextcloud-{{ nextcloud_version }}.zip.asc"
+
+- name: NEXTCLOUD - verify download
+  ansible.builtin.command: "gpg --verify /tmp/nextcloud-{{ nextcloud_version }}.zip.asc /tmp/nextcloud-{{ nextcloud_version }}.zip"
+  register: result
+  failed_when:
+    - result.rc != 0
+  changed_when:
+    - result.rc != 0
+
+- name: NEXTCLOUD - extract nextcloud itself
+  ansible.builtin.unarchive:
+    remote_src: true
+    src: "/tmp/nextcloud-{{ nextcloud_version }}.zip"
+    dest: "{{ nextcloud_apache_destination }}"
+    owner: "{{ nextcloud_httpd_owner }}"
+    group: "{{  nextcloud_httpd_group }}"
+
+- name: NEXTCLOUD - install nextcloud
+  register: result
+  args:
+    chdir: "{{ nextcloud_apache_destination }}/nextcloud"
+  ansible.builtin.command: >
+    sudo -u "{{ nextcloud_httpd_owner }}" php occ  maintenance:install --database
+    "mysql" --database-name "{{ nextcloud_db_name }}"  --database-user "{{ nextcloud_db_user }}" --database-pass
+    "{{ nextcloud_db_password }}" --admin-user "{{ nextcloud_admin_user }}" --admin-pass "{{ nextcloud_admin_password }}"
+  failed_when:
+    - result.rc == 1
+    - '"\"maintenance:install\" is not defined" not in result.stderr'
+  changed_when:
+    - result.rc == 0
+
+- name: NEXTCLOUD - install and enable nextcloud apps
+  register: result
+  args:
+    chdir: "{{ nextcloud_apache_destination }}/nextcloud"
+  ansible.builtin.command: "sudo -u {{ nextcloud_httpd_owner }} php occ app:{{ item }}"
+  with_items:
+    - enable bruteforcesettings
+    - enable twofactor_totp
+  failed_when:
+    - result.rc == 1
+    - '"already installed" not in result.stdout'
+  changed_when:
+    - result.rc == 0
+
+- name: NEXTCLOUD - nextcloud fix settings
+  lineinfile:
+    dest: "{{ nextcloud_php_destination }}"
+#    dest: "/etc/php.d/40-apcu.ini"
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
+    state: present
+    mode: 0644
+  with_items: "{{ php_configuration_items }}"
+
+- name: NEXTCLOUD - nextcloud system settings
+  args:
+    chdir: "{{ nextcloud_apache_destination }}/nextcloud"
+  ansible.builtin.command: "sudo -u {{ nextcloud_httpd_owner }} php occ config:system:set {{ item }}"
+  with_items:
+    - "trusted_domains 2 --value={{ nextcloud_fqdn }}"
+    - memcache.local --value='\OC\Memcache\APCu'
+    - "overwrite.cli.url --value=https://{{ nextcloud_fqdn }}"
+    - overwriteprotocol --value='https'
+    - htaccess.IgnoreFrontController --value=true
+
+- name: NEXTCLOUD - systemd timer service
+  ansible.builtin.copy:
+    mode: '0755'
+    dest: /etc/systemd/system/nextcloudcron.service
+    content: |
+      [Unit]
+      Description=Nextcloud cron.php job
+
+      [Service]
+      User=www-data
+      ExecStart=/usr/bin/php -f "{{ nextcloud_apache_destination }}"/nextcloud/cron.php
+      KillMode=process
+
+- name: NEXTCLOUD - systemd timer
+  ansible.builtin.copy:
+    mode: '0755'
+    dest: /etc/systemd/system/nextcloudcron.timer
+    content: |
+      [Unit]
+      Description=Run Nextcloud cron.php every 5 minutes
+
+      [Timer]
+      OnBootSec=5min
+      OnUnitActiveSec=5min
+      Unit=nextcloudcron.service
+
+      [Install]
+      WantedBy=timers.target
+
+- name: NEXTCLOUD - start and enable systemd timer
+  ansible.builtin.systemd:
+    name: nextcloudcron.timer
+    state: started
+    enabled: true
+
+- name: NEXTCLOUD - setup event scheduler to remove dead authtokens
+  when: (remove_unused_authtokens_after_days) | int > 0
+  community.mysql.mysql_query:
+    login_db: "{{ nextcloud_db_name }}"
+    query: >
+      CREATE EVENT IF NOT EXISTS remove_unused_authtokens
+        ON SCHEDULE EVERY 1 DAY
+        STARTS now()
+        DO
+        DELETE FROM oc_authtoken
+          WHERE from_unixtime(last_activity) < DATE_SUB(NOW(), INTERVAL {{ remove_unused_authtokens_after_days }} DAY);
+    single_transaction: true

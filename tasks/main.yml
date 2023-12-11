@@ -1,0 +1,28 @@
+---
+
+# Include Basic dependencies for System Operation.
+- name: Include OS-specific package dependency for  family {{ ansible_os_family }} of distribution {{ ansible_distribution }} {{ ansible_distribution_major_version }}.
+  include_tasks: "install-{{ ansible_os_family }}.yml"
+
+#Install/Configure Apache.
+- name: Install Apache and Configure on {{ ansible_distribution }} {{ ansible_distribution_major_version }}.
+  include_tasks: "apache-{{ ansible_os_family }}.yml"
+
+# Install/Configure PHP.
+- name: Install PHP and Configure on {{ ansible_distribution }} {{ ansible_distribution_major_version }}.
+  include_tasks: "php-{{ ansible_os_family }}.yml"
+
+# Install/Configure Database.
+- name: Install Database and Configure on {{ ansible_distribution }} {{ ansible_distribution_major_version }}.
+  include_tasks: "mariadb-{{ ansible_os_family }}.yml"
+
+# Install/Configure Nextcloud.
+- name: Install Nextcloud and Configure on {{ ansible_distribution }} {{ ansible_distribution_major_version }}.
+  include_tasks: "nextcloud-all.yml"
+
+# Install/Configure Media.
+- name: Install Media Nexcloud on {{ ansible_distribution }} {{ ansible_distribution_major_version }}.
+  include_tasks: "media-all.yml"
+  when: install_media  == 'true'
+
+

@@ -1,0 +1,347 @@
+---
+# vars file for failover.nextcloud
+# Author: Alexander Aguilar
+# github.com/alexolomeo
+#
+
+_nextcloud_os_requirements:
+  default:
+    - firewalld
+    - zip
+    - unzip
+    - nmap
+  Debian:
+    - firewalld
+    - zip
+    - unzip
+    - nmap
+  RedHat:
+    - firewalld
+    - zip
+    - unzip
+    - nmap
+    - yum-utils
+    - curl
+    - bash-completion
+    - policycoreutils-python-utils
+    - mlocate
+    - bzip2
+  Suse:
+    - firewalld
+    - zip
+    - unzip
+    - nmap
+
+nextcloud_os_requirements: "{{ _nextcloud_os_requirements[ansible_os_family] | default(_nextcloud_os_requirements['default']) }}"
+
+_nextcloud_mariadb_requirements:
+  default:
+    - mariadb
+    - mariadb-client
+  Debian:
+    - mariadb
+    - mariadb-client
+  RedHat:
+    - mariadb
+    - mariadb-client
+  Suse:
+    - mariadb
+    - mariadb-client
+
+nextcloud_mariadb_requirements: "{{ _nextcloud_mariadb_requirements[ansible_os_family] | default(_nextcloud_mariadb_requirements['default']) }}"
+
+_nextcloud_apache_requirements:
+  default:
+    - httpd
+    - httpd-devel
+    - mod_ssl
+    - openssh
+  Debian:
+    - apache
+    - apache-devel
+    - mod_ssl
+    - openssh
+  RedHat:
+    - httpd
+    - httpd-devel
+    - mod_ssl
+    - openssh
+  Suse:
+    - apache2
+    - apache2-devel
+    - mod_ssl
+    - openssh
+
+nextcloud_apache_requirements: "{{ _nextcloud_apache_requirements[ansible_os_family] | default(_nextcloud_apache_requirements['default']) }}"
+
+_nextcloud_apache_mods:
+  default:
+    - rewrite
+    - ssl
+  Debian:
+    - rewrite
+    - ssl
+  RedHat:
+    - rewrite
+    - ssl
+  Suse:
+    - rewrite
+    - ssl
+nextcloud_apache_mods: "{{ _nextcloud_apache_mods[ansible_os_family] | default(_nextcloud_apache_mods['default']) }}"
+
+_nextcloud_php_requirements:
+  default:
+    - php-dom
+    - php-gd
+    - php-imagick
+    - php-intl
+    - php-json
+    - php-libxml
+    - php-mbstring
+    - php-mysqlnd
+    - php-opcache
+    - php-pecl-apcu
+    - php-process
+    - php-redis
+    - php-simplexml
+    - php-xmlreader
+    - php-xmlwriter
+    - php-zip
+  Debian:
+    - php-bcmath
+    - php-curl
+    - php-dom
+    - php-gd
+    - php-gmp
+    - php-imagick
+    - php-intl
+    - php-mbstring
+    - php-mysql
+    - php-posix
+    - php-redis
+    - php-zip
+  RedHat:
+    - php
+    - php-fpm
+    - php-dom
+    - php-gd
+    - php-imagick
+    - php-intl
+    - php-json
+    - php-libxml
+    - php-mbstring
+    - php-mysqlnd
+    - php-opcache
+    - php-pecl-apcu
+    - php-pecl-memcache
+    - php-process
+    - php-redis
+    - php-simplexml
+    - php-xmlreader
+    - php-xmlwriter
+    - php-zip
+  Suse:
+    - php7-curl
+    - php7-dom
+    - php7-gd
+    - php7-intl
+    - php7-json
+    - php7-mbstring
+    - php7-mysql
+    - php7-openssl
+    - php7-pcntl
+    - php7-posix
+    - php7-redis
+    - php7-xmlreader
+    - php7-xmlwriter
+    - php7-zip
+    - php7-zlib
+
+nextcloud_php_requirements: "{{ _nextcloud_php_requirements[ansible_os_family] | default(_nextcloud_php_requirements['default']) }}"
+
+php_configuration_items:
+  - regexp: "^;?apc.enable_cli=0"
+    line: "apc.enable_cli=1"
+
+_nextcloud_php_destination:
+  default: /etc/php.d/40-apcu.ini
+  Debian: /etc/php/8.2/mods-available/apcu.ini
+  RedHat: /etc/php.d/40-apcu.ini
+
+nextcloud_php_destination: "{{ _nextcloud_php_destination[ansible_os_family] | default(_nextcloud_php_destination['default']) }}"
+
+nextcloud_sebooleans:
+  - httpd_can_network_connect
+  - httpd_unified
+
+_nextcloud_httpd_owner:
+  default: apache
+  RedHat: apache
+  Debian: www-data
+  Suse: wwwrun
+
+nextcloud_httpd_owner: "{{ _nextcloud_httpd_owner[ansible_os_family] | default(_nextcloud_httpd_owner['default']) }}"
+
+_nextcloud_httpd_group:
+  default: apache
+  RedHat: apache
+  Debian: www-data
+  Suse: www
+
+nextcloud_httpd_group: "{{ _nextcloud_httpd_group[ansible_os_family] | default(_nextcloud_httpd_group['default']) }}"
+
+nextcloud_archive: "https://download.nextcloud.com/server/releases/nextcloud-{{ nextcloud_version }}.zip"
+
+_nextcloud_apache_destination:
+  default: /var/www/html
+  Debian: /var/www
+  RedHat: /var/www/html
+  openSUSE Leap: /srv/www/htdocs
+
+nextcloud_apache_destination: "{{ _nextcloud_apache_destination[ansible_os_family] | default(_nextcloud_apache_destination['default']) }}"
+
+_nextcloud_apache_home_directory:
+  default: /etc/httpd
+  RedHat: /etc/httpd
+  Debian: /etc/apache2
+  Suse: /etc/apache2
+
+nextcloud_apache_home_directory: "{{ _nextcloud_apache_home_directory[ansible_os_family] | default(_nextcloud_apache_home_directory['default']) }}"
+
+_nextcloud_apache_config_directory:
+  default: /etc/httpd/conf.d
+  RedHat: /etc/httpd/conf.d
+  Debian: /etc/apache2/conf-enabled
+  Suse: /etc/apache2/conf.d
+
+nextcloud_apache_config_directory: "{{ _nextcloud_apache_config_directory[ansible_os_family] | default(_nextcloud_apache_config_directory['default']) }}"
+
+_nextcloud_apache_service:
+  default: httpd
+  Debian: apache2
+  Suse: apache2
+  RedHat: httpd
+
+nextcloud_apache_service: "{{ _nextcloud_apache_service[ansible_os_family] | default(_nextcloud_apache_service['default']) }}"
+
+_nextcloud_apache_daemon:
+  default: httpd
+  Debian: apache2
+  Suse: apache2
+  RedHat: httpd
+
+nextcloud_apache_daemon: "{{ _nextcloud_apache_daemon[ansible_os_family] | default(_nextcloud_apache_daemon['default']) }}"
+
+
+apache_ports_configuration_items:
+  - regexp: "^Listen "
+    line: "Listen {{ apache_listen_port }}"
+  - regexp: "^#?NameVirtualHost "
+    line: "NameVirtualHost {{ apache_listen_ip }}:{{ apache_listen_port }}"
+
+nextcloud_permissions:
+  - path: "{{ nextcloud_destination }}/nextcloud/apps"
+    mode: "0770"
+  - path: "{{ nextcloud_destination }}/nextcloud/data"
+    owner: "{{ nextcloud_httpd_owner }}"
+    group: "{{ nextcloud_httpd_group }}"
+    mode: "0770"
+    state: directory
+  - path: "{{ nextcloud_destination }}/nextcloud/config"
+    owner: "{{ nextcloud_httpd_owner }}"
+    group: "{{ nextcloud_httpd_group }}"
+    mode: "0770"
+    state: directory
+  - path: "{{ nextcloud_destination }}/nextcloud/config/config.php"
+    owner: "{{ nextcloud_httpd_owner }}"
+    group: "{{ nextcloud_httpd_group }}"
+    mode: "0660"
+
+nextcloud_command: 'php occ maintenance:install --database "mysql" --database-name "{{ nextcloud_database_name }}" --database-user "{{ nextcloud_database_user }}" --database-pass "{{ nextcloud_database_pass }}" --database-host "{{ nextcloud_database_host }}" --admin-user "{{ nextcloud_admin_user }}" --admin-pass "{{ nextcloud_admin_pass }}"'
+
+_mysql_name:
+  default: mariadb
+  RedHat: mariadb
+
+mysql_name: "{{ _mysql_name[ansible_os_family] | default(_mysql_name['default'] ) }}"
+
+_mysql_packages:
+  default:
+    - "{{ mysql_name }}-server"
+    - "{{ mysql_name }}-devel"
+    - python2-mysql
+  Debian:
+    - "{{ mysql_name }}-server"
+    - python3-mysqldb
+  Suse:
+    - libmysqlclient-devel
+    - "{{ mysql_name }}"
+    - python3-mysqlclient
+  RedHat:
+    - "{{ mysql_name }}-server"
+    - python3-PyMySQL
+
+nextcloud_mysql_packages: "{{ _mysql_packages[ansible_os_family]  | default(_mysql_packages['default'] ) }}"
+
+_mysql_service:
+  default: "{{ mysql_name }}"
+  Debian: "{{ mysql_name }}d"
+  Suse: "{{ mysql_name }}d"
+  RedHat: "{{ mysql_name }}"
+
+mysql_service: "{{ _mysql_service[ansible_os_family] | default(_mysql_service['default']) }}"
+
+_mysql_socket:
+  default: /var/run/mysql/mysql.sock
+  Debian: /var/run/mysqld/mysqld.sock
+  RedHat: /var/lib/mysql/mysql.sock
+
+mysql_socket: "{{ _mysql_socket[ansible_os_family] | default(_mysql_socket['default']) }}"
+
+mysql_configuration_options:
+  - option: bind-address
+    section: mysqld
+    value: "{{ mysql_bind_address }}"
+  - option: socket
+    section: mysqld
+    value: "{{ mysql_socket }}"
+  - section: mysqld
+    option: innodb_buffer_pool_size
+    value: "{{ mysql_innodb_buffer_pool_size }}"
+  - section: mysqld
+    option: innodb_io_capacity
+    value: "{{ mysql_innodb_io_capacity }}"
+
+_mysql_configuration_destination:
+  default: /etc/mysql/mariadb.conf.d
+  RedHat: /etc/my.cnf.d
+
+mysql_configuration_destination: "{{ _mysql_configuration_destination[ansible_os_family] | default(_mysql_configuration_destination['default']) }}"
+
+
+_epel_version:
+  default: "{{ ansible_distribution_major_version }}"
+  Amazon-2018: 6
+  Amazon-2: 7
+
+epel_version: "{{ _epel_version[ansible_distribution ~ '-' ~ ansible_distribution_major_version] | default(_epel_version['default'] ) }}"
+
+epel_url: "https://dl.fedoraproject.org/pub/epel/epel-release-latest-{{ epel_version }}.noarch.rpm"
+
+epel_next_url: "https://dl.fedoraproject.org/pub/epel/epel-next-release-latest-{{ epel_version }}.noarch.rpm"
+
+remi_url: "https://rpms.remirepo.net/enterprise/remi-release-{{ epel_version }}.rpm"
+
+remi_gpg_key: "https://rpms.remirepo.net/enterprise/{{ epel_version }}/RPM-GPG-KEY-remi"
+
+epel_media_url:
+  - "https://mirrors.rpmfusion.org/free/el/rpmfusion-free-release-{{ epel_version }}.noarch.rpm"
+  - "https://mirrors.rpmfusion.org/nonfree/el/rpmfusion-nonfree-release-{{ epel_version }}.noarch.rpm"
+
+epel_gpg_key: "https://dl.fedoraproject.org/pub/epel/RPM-GPG-KEY-EPEL-{{ epel_version }}"
+
+_epel_next:
+  default: no
+  Stream: yes
+
+epel_next: "{{ _epel_next[ansible_distribution_release] | default(_epel_next['default']) }}"

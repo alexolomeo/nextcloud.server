@@ -1,0 +1,65 @@
+---
+
+- name: Basic Packages for Centos or RHEL.
+  ansible.builtin.package:
+    name: "{{ nextcloud_os_requirements }}"
+    state: present
+
+
+- name: REPO BLOCK - Install epel
+  when:
+    - (ansible_os_family == "RedHat" and
+      ansible_distribution_major_version in [ "7", "8", "9" ])
+  block:
+    - name: REPO {{ ansible_distribution }} {{ ansible_distribution_major_version }} - Install epel gpg key
+      ansible.builtin.rpm_key:
+        key: "{{ epel_gpg_key }}"
+        state: present
+
+    - name: REPO {{ ansible_distribution }} {{ ansible_distribution_major_version }} - Install epel-release
+      ansible.builtin.package:
+        name: "{{ epel_url }}"
+        state: present
+      notify:
+        - Update package cache
+
+    - name: REPO {{ ansible_distribution }} {{ ansible_distribution_major_version }} - UPDATE
+      become: yes
+      ansible.builtin.command: "sudo dnf -y update"
+
+    - name: "REPO {{ ansible_distribution }} {{ ansible_distribution_major_version }} - Install remi gpg key : {{ remi_gpg_key }}"
+      ansible.builtin.rpm_key:
+        key: "{{ remi_gpg_key }}"
+        state: present
+
+    - name: REPO {{ ansible_distribution }} {{ ansible_distribution_major_version }} - Install remi-repo
+      ansible.builtin.package:
+        name: "{{ remi_url }}"
+        state: present
+      notify:
+        - Update package cache
+
+    - name: REPO {{ ansible_distribution }} {{ ansible_distribution_major_version }} - Install epel-media-repo
+      ansible.builtin.package:
+        name: "{{ epel_media_url }}"
+        state: present
+      notify:
+        - Update package cache
+
+    - name: REPO {{ ansible_distribution }} {{ ansible_distribution_major_version }} - Install epel-next-release
+      ansible.builtin.package:
+        name: "{{ epel_next_url }}"
+        state: present
+      when:
+        - epel_next
+      notify:
+        - Update package cache
+
+    - name: REPO {{ ansible_distribution }} {{ ansible_distribution_major_version }} - DNF Config Manages
+      become: yes
+      ansible.builtin.command: "sudo dnf config-manager --set-enabled crb"
+
+    - name: REPO {{ ansible_distribution }} {{ ansible_distribution_major_version }} - DNF epel-release epel-next-release
+      become: yes
+      ansible.builtin.command: "sudo dnf install epel-release epel-next-release"
+

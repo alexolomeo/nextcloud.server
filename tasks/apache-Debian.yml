@@ -1,0 +1,81 @@
+- name: APACHE - install apache2
+  ansible.builtin.apt:
+    update_cache: true
+    state: latest
+    name:
+      - apache2
+      - libapache2-mod-php8.2
+
+- name: APACHE - install Apache modules rewrite
+  apache2_module:
+    state=present
+    name=rewrite
+
+- name: APACHE - install Apache modules headers
+  apache2_module:
+    state=present
+    name=headers
+
+- name: APACHE - install Apache modules env
+  apache2_module:
+    state=present
+    name=env
+
+- name: APACHE - install Apache modules dir
+  apache2_module:
+    state=present
+    name=dir
+
+- name: APACHE - install Apache modules mime
+  apache2_module:
+    state=present
+    name=mime
+
+- name: APACHE - install Apache modules ssl
+  apache2_module:
+    state=present
+    name=ssl
+
+- name: APACHE - install Apache modules proxy_http
+  apache2_module:
+    state=present
+    name=proxy_http
+
+- name: APACHE - install Apache modules proxy_wstunnel
+  apache2_module:
+    state=present
+    name=proxy_wstunnel
+
+- name: APACHE - install Apache modules proxy_fcgi
+  apache2_module:
+    state=present
+    name=proxy_fcgi
+
+- name: APACHE - install Apache modules vhost_alias
+  apache2_module:
+    state=present
+    name=vhost_alias
+
+#- name: Enable the Apache2 module
+#  community.general.apache2_module:
+#    state: present
+#    name:
+#      - rewrite
+#      - headers
+#      - env
+#      - dir
+#      - mime
+#      - ssl
+#      - proxy_http
+#      - proxy_wstunnel
+
+- name: APACHE - copy 000-default.conf "/etc/apache2/sites-enabled"
+  ansible.builtin.copy:
+    src: 000-default-Debian.conf
+    dest: /etc/apache2/sites-enabled/000-default.conf
+    mode: '0755'
+
+- name: APACHE - restart apache2
+  ansible.builtin.systemd:
+    name: apache2
+    state: restarted
