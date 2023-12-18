@@ -9,8 +9,7 @@
     - ufw allow out 443 comment "outgoing https"
     - ufw allow out 53/udp comment "outgoing for dns"
     - ufw allow out 123/udp comment "outgoing for ntp"
-    - ufw allow out 993 comment "outgoing imap ssl"
-    - ufw allow out 465 comment "outgoing smtp ssl"
+
 
 - name: ufw enable
   community.general.ufw:
