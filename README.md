@@ -1,7 +1,8 @@
+```yml
 # Ansible Role: Nextcloud.server
-#Author: Alexander Aguilar
-#Email: alexolomeo@gmail.com
-
+# Author: Alexander Aguilar
+# Email: alexolomeo@gmail.com
+```
 
 This role installs, and configures Nextcloud for Ubuntu Server 22.04, Ubuntu Server 20.04 , RHEL 8, RHEL 9
 
