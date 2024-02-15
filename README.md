@@ -11,22 +11,6 @@ This role installs, and configures Nextcloud for Ubuntu Server 22.04, Ubuntu Ser
 * Apache
 * Nextcloud 
 
-For more information, read the project wiki page: 
-
-## Requirements
-
-## Role Variables
-
-| Variale Name | Required | Default Value |
-| --- | --- | --- |
-| `ubuntu_nextcloud_user` | yes | |
-| `nextcloud_fqdn` | yes | |
-| `mariadb_root_password` | yes | |
-| `nextcloud_db_password` | yes | |
-| `nextcloud_admin_user` | yes | |
-| `nextcloud_admin_password` | yes | |
-
-
 A full list of defaults and their values can be found in the `defaults/main.yml`.
 
 ## host file
