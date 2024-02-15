@@ -23,7 +23,7 @@ ansible_user=ubuntu
 #ansible_become=yes
 #ansible_become_method=sudo
 #ansible_port= 2244
-ansible_ssh_private_key_file= ./KEY-UBUNTU-JAMMY
+ansible_ssh_private_key_file= ./KEY-UBUNTU.pem
 ```
 
 ## Example Playbook
