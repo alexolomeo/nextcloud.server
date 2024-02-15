@@ -20,13 +20,11 @@ For more information, read the project wiki page:
 | Variale Name | Required | Default Value |
 | --- | --- | --- |
 | `ubuntu_nextcloud_user` | yes | |
-| `ubuntu_nextcloud_user_ssh_key_location` | yes | |
 | `nextcloud_fqdn` | yes | |
 | `mariadb_root_password` | yes | |
 | `nextcloud_db_password` | yes | |
 | `nextcloud_admin_user` | yes | |
 | `nextcloud_admin_password` | yes | |
-| `install_media`| no | no |
 
 
 A full list of defaults and their values can be found in the `defaults/main.yml`.
